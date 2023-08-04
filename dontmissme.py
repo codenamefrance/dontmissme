@@ -1,13 +1,8 @@
 from tinydb import TinyDB, Query, where
 from datetime import *
+from supermemo2 import SMTwo, day_mon_year
+
 DB_DEFAULT = 'database.js'
-SPACED_DAYS = []
-for i in range(50):
-    days = i*2+1
-    print(i*2)
-    SPACED_DAYS.append(days)
-print(SPACED_DAYS)
-    
 
 '''
 class Topic:
@@ -28,6 +23,20 @@ class Topic:
         self.last_date = date
 '''
 
+'''
+The values are the:
+Quality: The quality of recalling the answer from a scale of 0 to 5.
+5: perfect response.
+4: correct response after a hesitation.
+3: correct response recalled with serious difficulty.
+2: incorrect response; where the correct one seemed easy to recall.
+1: incorrect response; the correct one remembered.
+0: complete blackout.
+Easiness: The easiness factor, a multipler that affects the size of the interval, determine by the quality of the recall.
+Interval: The gap/space between your next review.
+Repetitions: The count of correct response (quality >= 3) you have in a row.
+'''
+
 def db_init(db_name):
     db = TinyDB(db_name)
     return db
@@ -40,15 +49,47 @@ def add_topic(db):
     desc = input("Write down a short description (press ENTER to leave blank): ")
     if len(desc.strip(" "))==0:
         desc == 'None'
+
     date_obj = date.today()
+    revision_obj=SMTwo.first_review(3) #automatically sets today's date as add date
+
     date_add = str(date_obj.day) + '-' + str(date_obj.month) + '-' + str(date_obj.year)
-    next_date_obj = date_obj + timedelta(days=SPACED_DAYS[rev_score])
-    next_date = str(next_date_obj.day) + '-' + str(next_date_obj.month) + '-' + str(next_date_obj.year)
+    date_next = str(revision_obj.review_date.year)+ '-' + str(revision_obj.review_date.month)+ '-' + str(revision_obj.review_date.day)
+
     subject = input("Subject's name: ")
     db_id = db.insert({'title':title, 'desc':desc, 'add_date':date_add, 'last_date':date_add,
-                    'next_date':next_date, 'rev_score':rev_score, 'subject':subject})
+                    'next_date':date_next, 'easiness':revision_obj.easiness, 'interval':revision_obj.interval,
+                    'repetitions':revision_obj.repetitions, 'subject':subject})
     
     return db_id
+
+def update_topic(db_obj, review_obj):
+    date_next = str(review_obj.review_date.year)+ '-' + str(review_obj.review_date.month)+ '-' + str(review_obj.review_date.day)
+    today_is_last = date.today()
+    last_date = str(today_is_last.year) + '-' + str(today_is_last.month) + '-' + str(today_is_last.day)
+
+    db_obj.update({'last_date':last_date})
+    db_obj.update({'next_date':date_next})
+    db_obj.update({'easiness':review_obj.easiness})
+    db_obj.update({'interval':review_obj.interval})
+    db_obj.update({'repetitions':review_obj.repetitions})
+
+    print("Updated!")
+    
+    return
+
+def revise_topic(db, topic_id, difficulty):
+    topic_obj = db.get(doc_id=topic_id)
+    print(topic_obj)
+    topic_easiness = topic_obj['easiness']
+    topic_repetitions = topic_obj['repetitions']
+    topic_interval = topic_obj['interval']
+    review_obj = SMTwo(topic_easiness, topic_interval, topic_repetitions).review(difficulty)
+    update_topic(db, review_obj)
+
+    return
+
+#def funzione che cerca gli argomenti da ripassare in giornata, ritorna l'id nel db del topic
 
 #def spaced(topic):
 
@@ -56,6 +97,13 @@ def add_topic(db):
 def main():
     db_main = db_init(DB_DEFAULT)
     all_subj = set()
-    db_id = add_topic(db_main)
+    #topic_id = add_topic(db_main)
+
+    revise_topic(db_main, 1, 3)
+
+
+
+
+    
 
 main()
