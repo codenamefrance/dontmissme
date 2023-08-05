@@ -4,18 +4,6 @@ from supermemo2 import SMTwo
 
 DB_DEFAULT = 'database.js'
 
-'''
-class Topic:
-    def __init__(self, title, description, add_date, subject):
-        self.title = title
-        self.description = description
-        self.add_date = add_date
-        self.last_date = add_date
-        self.next_date = (the followin day)
-        self.rev_score = 0
-        self.subject = subject
-'''
-
 def db_init(db_name):
     db = TinyDB(db_name)
     return db
