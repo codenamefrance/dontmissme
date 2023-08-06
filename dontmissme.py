@@ -16,7 +16,6 @@ def date_to_string(date):
     return date_string
 
 def add_topic(db):
-    rev_score = 0
     title = input("Enter the title for your new topic: ")
     desc = input("Write down a short description (press ENTER to leave blank): ")
     if len(desc.strip(" "))==0:
@@ -45,7 +44,32 @@ def revise_today(db):
     if(len(args)>0):
         return args
     else:
-        return None
+       return []
+
+# Revision mode main
+def revision_main(topic_list, db_main):
+    if len(topic_list) == 0:
+            print("Non ci sono argomenti da ripassare oggi.")
+            return 
+    else:
+        print("Devi ripassare i seguenti argomenti: ")
+        i=1
+        for item in topic_list:
+            print("%d - %s" %(i, item['title']))
+            i+=1
+        try:
+            user_input = int(input("\nWhich topic would you like to revise? "))
+        except:
+            print("Invalid input")
+            exit()
+        
+        if user_input in range(1, i):
+            revise_topic(db_main, topic_list[user_input-1].doc_id, 3)
+        else:
+            print("Invalid choice.")
+            exit()
+        
+    return
 
 # Simple function that applies the SM2 algorithm to a specified topic
 
@@ -79,34 +103,28 @@ def update_topic(db_obj, review_obj, topic_id):
     
 def main():
     db_main = db_init(DB_DEFAULT)
-    all_subj = set()
-    #topic_id = add_topic(db_main)
+    #all_subj = set()
 
     topics_to_revise = revise_today(db_main)
-    if topics_to_revise == None:
-        print("Non ci sono argomenti da ripassare oggi.")
-    else:
-        print("Devi ripassare i seguenti argomenti: ")
-        i=1
-        for item in topics_to_revise:
-            print("%d - %s" %(i, item['title']))
-            i+=1
+    print("There currently are %d topics to be revised today." %(len(topics_to_revise)))
+
+    print("Welcome! How can I help you?")
+    print("1 - Add a new topic")
+    print("2 - Revise a topic")
+
     try:
-        user_input = int(input("\nWhich topic would you like to revise? "))
+        user_input = int(input("Input: "))
     except:
-        print("Invalid input")
+        print("Invalid input. Exiting...")
         exit()
     
-    if user_input in range(1, i):
-        revise_topic(db_main, topics_to_revise[user_input-1].doc_id, 3)
+    if user_input in range(1,3):
+        if user_input == 1:
+            topic_id = add_topic(db_main)
+        elif user_input == 2:
+            revision_main(topics_to_revise, db_main)
     else:
-        print("Invalid choice.")
+        print("Invalid choice. Exiting...")
         exit()
-
-
-
-
-
-
 
 main()
